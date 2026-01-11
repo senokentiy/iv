@@ -1,10 +1,5 @@
 
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL_pixels.h>
-#include <SDL2/SDL_stdinc.h>
-#include <SDL2/SDL_timer.h>
-#include <SDL2/SDL_video.h>
+#include <SDL2/SDL.h>
 
 #include <stddef.h>
 #include <stdio.h>
@@ -46,9 +41,22 @@ main (int argc, char **argv)
     }
 
     // window setup
-    SDL_Window *window
-        = SDL_CreateWindow ("image viewer", SDL_WINDOWPOS_CENTERED,
-                            SDL_WINDOWPOS_CENTERED, width, height, 0);
+    if (SDL_Init (SDL_INIT_VIDEO) != 0)
+    {
+        fprintf (stderr, "[x] init error: %s\n", SDL_GetError ());
+        return 1;
+    }
+
+    SDL_Window *window = NULL;
+
+    window = SDL_CreateWindow ("image viewer", SDL_WINDOWPOS_UNDEFINED,
+                               SDL_WINDOWPOS_UNDEFINED, width, height, 0);
+
+    if (window == NULL)
+    {
+        fprintf (stderr, "[x] window error: %s\n", SDL_GetError ());
+        return 1;
+    }
 
     SDL_Surface *surface = SDL_GetWindowSurface (window);
 
@@ -76,30 +84,25 @@ main (int argc, char **argv)
         }
     }
 
-    fclose (fd);
     SDL_UpdateWindowSurface (window);
-    SDL_Delay (5000);
 
-    // int running = 1;
-    // while (running)
-    // {
-    //     SDL_Event event;
-    //     while (SDL_PollEvent (&event))
-    //     {
-    //         if (event.type == SDL_KEYDOWN)
-    //         {
-    //             if (event.key.keysym.sym == SDLK_q
-    //                 && (event.key.keysym.mod & KMOD_MODE))
-    //             {
-    //                 SDL_Event quit_event;
-    //                 quit_event.type = SDL_QUIT;
-    //                 SDL_PushEvent (&quit_event);
-    //             }
-    //         }
-    //     }
-    //     SDL_Delay (100);
-    // }
+    int running = 1;
+    while (running)
+    {
+        SDL_Event event;
+        while (SDL_PollEvent (&event))
+        {
+            if (event.type == SDL_QUIT)
+            {
+                running = 0;
+            }
+        }
+        SDL_Delay (100);
+    }
 
+    fclose (fd);
+    SDL_DestroyWindow (window);
+    SDL_Quit ();
     return EXIT_SUCCESS;
 }
 
